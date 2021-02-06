@@ -144,7 +144,7 @@ contract token is SafeMath{
         }
         else if(power[_from] < 500 * 1e3)
         {
-            scale = 20;
+            scale = 50;
         }
         else if(power[_from] < 5000 * 1e3)
         {
