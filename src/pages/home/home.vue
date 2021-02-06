@@ -1,5 +1,5 @@
 <template>
-  <div :class="['container', config.chainId === '20181205' ? '' : 'theme-heco']">
+  <div :class="['container', 'theme-heco']">
     <div class="head">
       <div class="my flex">
         <img :src="require('../../assets/'+assetUrl+'head.png') " class="huo" mode />
@@ -37,6 +37,16 @@
       </div>
     </div>
     <div class="cont">
+      <div class="my-box pleage-box" v-if="level < 2 || coinBalanceOf > 0">
+        <div class="copy copy1 space-between">
+          <div class="flex_v_start flex1">
+            <div class="num">当前质押数量</div>
+            <div class="blue_num">{{coinBalanceOf}}</div>
+          </div>
+          <div class="flex-box" style="background-color: #F6884F" @click="pledgeShow=true" v-if="level < 2">质押HT</div>
+          <div class="flex-box" @click="pledgeOutShow=true" v-if="coinBalanceOf > 0">取出HT</div>
+        </div>
+      </div>
       <div class="tab space-between">
         <div class="item" @click="showBurnFlag = true">
           <img :src="require('../../assets/'+assetUrl+'tab1.png')" class="img" mode />
@@ -97,7 +107,11 @@
       </div>
 
       <div class="my-box qkswap">
-        <div class="text2"> <img src="../../assets/qks.png" alt="">{{config.tipsDesc}}<a :href="config.tipsUrl" class="link"><b>{{config.tipsUrl}}</b></a></div>
+        <div class="flex_h">
+          <img src="../../assets/qks.png" alt="">
+          <div class="text2 align-left" style="text-align: left;">{{config.tipsDesc}}</div>
+        </div>
+        <div class="text2">qkswap可以点击进入<a :href="config.tipsUrl" class="link"><b>{{config.tipsUrl}}</b></a></div>
       </div>
 
       <div class="my-box">
@@ -218,12 +232,62 @@
         </div>
       </div>
     </div>
+    <!-- 取出质押 -->
+    <div class="bg" v-show="pledgeOutShow">
+      <div class="flex-box">
+        <div class="box1">
+          <div class="align-center">
+            <div class="text">取出HT</div>
+          </div>
+          <div class="text1 alignLeft">
+            可取出数量
+            <span>{{ coinBalanceOf }} </span>HT
+          </div>
+          <div class="input-box space-between">
+            <input type="text" class="input" value placeholder="输入取出数量" v-model="amount" />
+            <div class="align-center">
+              <div class="text2">HT</div>
+              <div class="line"></div>
+              <div class="text3" @click="amount = coinBalanceOf">全部</div>
+            </div>
+          </div>
+          <div class="tit">* 取出HT需要在上次挖矿后24小时</div>
+          <div class="flex-box btn" @click="withDraw">确定取出</div>
+          <div class="text4" @click="pledgeOutShow = false">取消</div>
+        </div>
+      </div>
+    </div>
+    <!-- 质押 -->
+    <div class="bg" v-show="pledgeShow">
+      <div class="flex-box">
+        <div class="box1">
+          <div class="align-center">
+            <div class="text">质押HT</div>
+          </div>
+          <div class="text1 alignLeft">
+            等级小于V1用户质押10HT可获得0.2%
+          </div>
+          <div class="input-box space-between">
+            <input type="text" class="input" value placeholder="输入质押数量" v-model="amount" />
+            <div class="align-center">
+              <div class="line"></div>
+              <div class="text2">HT</div>
+              
+              <!-- <div class="text3" @click="inputAll">全部</div> -->
+            </div>
+          </div>
+          <div class="tit">* 小于V1用户没有质押ht，产出率只有0.1%</div>
+          <div class="flex-box btn" @click="handlePlege">确定质押</div>
+          <div class="text4" @click="pledgeShow = false">取消</div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 // import h5Copy from '../js_sdk/junyi-h5-copy/junyi-h5-copy/junyi-h5-copy.js'
-import { h5Copy, initEth, timeUtils, vertify } from "@/utils/utils";
+import { h5Copy, initEth, timeUtils, vertify, Decimal } from "@/utils/utils";
 import { ethers } from "ethers";
 import { abi, abiPro } from "./abi";
 import { Toast } from "vant";
@@ -243,6 +307,8 @@ export default {
       level: 1,
       lvShow: false,
       bgShow: false,
+      pledgeShow: false,
+      pledgeOutShow: false,
       type: 1,
       epoch: 86400, // 挖矿周期
       inviteCount: "0", // 邀请的人数
@@ -262,7 +328,8 @@ export default {
       expectAmount: 0, // 预估收益
       decimals: 2, //精度
       config: GLOBAL_CONFIGS,
-      assetUrl: process.env.VUE_APP_PLATFORM == 'QKI' ? '' : 'heco/'
+      assetUrl: 'heco/',
+      coinBalanceOf: 0
     };
   },
   async created() {
@@ -288,7 +355,7 @@ export default {
     await this.getBalance();
     await this.getPower();
   },
-  mixins: [h5Copy, initEth, timeUtils, vertify],
+  mixins: [h5Copy, initEth, timeUtils, vertify, Decimal],
   methods: {
     show(num) {
       this.type = num;
@@ -433,6 +500,7 @@ export default {
         ethers.FixedNumber.from(this.amount.toString()) * 10 ** this.decimals;
       let [error, res] = await this.to(this.contract.burn(burn_amount));
       if (this.doResponse(error, res)) {
+        this.amount = "";
         this.showBurnFlag = false;
         Toast("操作成功");
         await this.queryTransation(res.hash);
@@ -450,6 +518,78 @@ export default {
         Toast("收益领取成功！");
         await this.queryTransation(res.hash, true);
       }
+    },
+    // 获取质押数量
+    async getPledgeAmount() {
+      let [error, balance] = await this.to(
+        this.contract.CoinBalanceOf(this.myAddress)
+      );
+      if (error == null) {
+        let etherString = ethers.utils.formatEther(balance);
+        this.coinBalanceOf = parseFloat(etherString);
+      }
+      this.coinBalanceOf = 0.0
+    },
+    // 取出质押
+    async withDraw() {
+      if (this.amount == "") {
+        Toast("请输入您的取出质押数量");
+        return;
+      }
+      let amount = ethers.utils.parseEther(this.amount.toString());
+      const gasLimit = await this.getEstimateGas(() =>
+          this.contract.estimateGas.withdraw(amount)
+        );
+        if (gasLimit === 0) {
+          return;
+        }
+        let [error, res] = await this.to(
+          this.contract.withdraw(amount, {
+            gasLimit,
+            gasPrice: ethers.utils.parseUnits("2", "gwei"),
+          })
+        );
+        if (this.doResponse(error, res)) {
+          this.pledgeShow = false;
+          this.amount = "";
+          Toast("提交请求成功，等待区块确认");
+          await this.queryTransation(res.hash, () => {
+            this.getPledgeAmount();
+          });
+        }
+    },
+    // 质押
+    async handlePlege() {
+      if (this.amount == "") {
+        Toast("请输入您的质押数量");
+        return;
+      }
+      let amount = ethers.utils.parseEther(this.amount.toString());
+      let tx = {
+          from: this.myAddress, //当前用户地址
+          to: this.contract.address, //接收地址
+          value: amount,
+        };
+        const gasLimit = await this.getEstimateGas(() =>
+          this.signer.estimateGas(tx)
+        );
+        if (gasLimit === 0) {
+          return;
+        }
+        tx = Object.assign(tx, {
+          gasLimit: Number(gasLimit),
+          gasPrice: ethers.utils.parseUnits("2", "gwei"),
+        });
+        let [error, res] = await this.to(this.signer.sendTransaction(tx));
+        if (this.doResponse(error, res)) {
+          this.pledgeShow = false;
+          this.amount = "";
+          Toast("提交请求成功，等待区块确认");
+          await this.queryTransation(res.hash, () => {
+            this.getPledgeAmount();
+          });
+        }
+
     },
     // 查询Transaction
     async queryTransation(hash, updateTime) {
@@ -547,10 +687,23 @@ export default {
     inputAll() {
       this.amount = this.balance;
     },
+    async getEstimateGas(fn) {
+      const [err, res] = await this.to(fn());
+      if (this.doResponse(err, res)) {
+        const hex = ethers.utils.hexValue(res);
+        const Value = this.hex2int(hex);
+        console.log("getEstimateGas========", Value);
+        return String(Decimal.mul(Value, 1.5)).split(".")[0];
+      } else {
+        return 0;
+      }
+    },
 
     tab(num) {
       this.active = num;
-    }
+    },
+
+    
   },
   // computed: {
   //   receiveAble: function(){
@@ -774,7 +927,17 @@ export default {
   .my-box {
     margin-top: 60px;
     padding: 0 48px;
-
+    &.pleage-box{
+      margin-top: 0px;
+      margin-bottom: 40px;
+      .copy {
+        .flex-box{
+          width: 131px;
+          height: 62px;
+          margin-left: 20px;
+        }
+      }
+    }
     .img {
       width: 26px;
       height: 35px;
@@ -822,6 +985,10 @@ export default {
       .num {
         font-size: 20px;
         color: #737278;
+      }
+      .blue_num{
+        font-size: 40px;
+        color: #001D52;
       }
 
       .copy-img {
@@ -928,7 +1095,7 @@ export default {
         color: #b9b9b9;
         font-weight: 500;
         margin-top: 13px;
-        uni-text {
+        span {
           color: #dc5242;
         }
       }
@@ -1051,6 +1218,7 @@ export default {
 .qkswap {
   img {
     width: 35px;
+    height: 39px;
     vertical-align: middle;
   }
 
@@ -1077,89 +1245,89 @@ export default {
     margin-right: 15px;
   }
 }
-.theme-heco{
-  .head {
-    background: url(../../assets/heco/bj.png) no-repeat;
-    .my {
-      .right {
-        .align-center {
-          .text {
-            color: #fff;
-          }
-        }
-      }
-    }
-    .money {
-      .item {
-        .text {
-          color: #fff;
-        }
-      }
-    }
-  }
-  .cont{
-    .my-box {
-      .text {
-        color:#001D52;
-      }
-      .text1 {
-        font-size: 24px;
-        color: #7d7d82;
-      }
-      .text2 {
-        color: #b09b99;
-      }
-      .copy {
-        background: #DFE7FF;
-        &.copy1 {
-          height: 102px;
-          background: #f3f3f3;
-          padding: 0 33px 0 40px;
-        }
+// .theme-heco{
+//   .head {
+//     background: url(../../assets/heco/bj.png) no-repeat;
+//     .my {
+//       .right {
+//         .align-center {
+//           .text {
+//             color: #fff;
+//           }
+//         }
+//       }
+//     }
+//     .money {
+//       .item {
+//         .text {
+//           color: #fff;
+//         }
+//       }
+//     }
+//   }
+//   .cont{
+//     .my-box {
+//       .text {
+//         color:#001D52;
+//       }
+//       .text1 {
+//         font-size: 24px;
+//         color: #7d7d82;
+//       }
+//       .text2 {
+//         color: #b09b99;
+//       }
+//       .copy {
+//         background: #DFE7FF;
+//         &.copy1 {
+//           height: 102px;
+//           background: #f3f3f3;
+//           padding: 0 33px 0 40px;
+//         }
 
-        .flex-box {
-          background: #536689;
-        }
+//         .flex-box {
+//           background: #536689;
+//         }
 
-        .num {
-          color: #001D52;
-        }
-      }
-    }
-  }
-  .bg {
-    .flex-box {
-      .box {
-        .text1 {
-          .lv {
-            color: #1C6DF1;
-          }
-        }
-        .btn {
-          background: #1C6DF1;
-        }
-      }
-      .box1 {
-        .text1 {
-          span {
-            color:#6F81A8;
-          }
-        }
-        .text3 {
-          color: #092559;
-        }
-        .tit {
-          color: #001D52;
-        }
-        .btn {
-          background: #1C6DF1;
-        }
-      }
-    }
-  }
-  .hy {
-    background: linear-gradient(135deg, #005AFF 0%, #337CE4 100%);
-  }
+//         .num {
+//           color: #001D52;
+//         }
+//       }
+//     }
+//   }
+//   .bg {
+//     .flex-box {
+//       .box {
+//         .text1 {
+//           .lv {
+//             color: #1C6DF1;
+//           }
+//         }
+//         .btn {
+//           background: #1C6DF1;
+//         }
+//       }
+//       .box1 {
+//         .text1 {
+//           span {
+//             color:#6F81A8;
+//           }
+//         }
+//         .text3 {
+//           color: #092559;
+//         }
+//         .tit {
+//           color: #001D52;
+//         }
+//         .btn {
+//           background: #1C6DF1;
+//         }
+//       }
+//     }
+//   }
+//   .hy {
+//     background: linear-gradient(135deg, #005AFF 0%, #337CE4 100%);
+//   }
   
-}
+// }
 </style>
