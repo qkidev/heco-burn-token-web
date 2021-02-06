@@ -47,7 +47,7 @@ contract token is SafeMath{
 
     /* This creates an array with all balances */
     mapping (address => uint256) public balanceOf;
-    mapping (address => uint256) public CoinbalanceOf;
+    mapping (address => uint256) public CoinBalanceOf;
     mapping (address => address) public invite;//邀请
     mapping (address => uint256) public power;//算力
     mapping (address => uint256) public last_miner;//用户上次挖矿时间
@@ -99,15 +99,15 @@ contract token is SafeMath{
 
     //存入coin
     function deposit() public payable {
-        CoinbalanceOf[msg.sender] += msg.value;
+        CoinBalanceOf[msg.sender] += msg.value;
         emit Deposit(msg.sender, msg.value);
     }
     
     //取出coin
     function withdraw(uint256 wad) public {
         require(block.timestamp - last_miner[msg.sender] >= 86400);//挖矿24小时后才能提交
-        require(CoinbalanceOf[msg.sender] >= wad);
-        CoinbalanceOf[msg.sender] -= wad;
+        require(CoinBalanceOf[msg.sender] >= wad);
+        CoinBalanceOf[msg.sender] -= wad;
         msg.sender.transfer(wad);
         Withdrawal(msg.sender, wad);
     }
@@ -385,7 +385,7 @@ contract token is SafeMath{
         {
             scale = 20;
             //用户合约内锁仓coin余额小于一个值，转化率只有0.1%
-            if(CoinbalanceOf[msg.sender] < anti_bot)
+            if(CoinBalanceOf[msg.sender] < anti_bot)
             {
                 scale = 10;
             }
@@ -411,7 +411,7 @@ contract token is SafeMath{
         
         if(miner_days > 5)
         {
-            miner_days = 5;
+            miner_days = 5;//单次最多领取5天的
         }
         
         //第一次挖矿只能1天
