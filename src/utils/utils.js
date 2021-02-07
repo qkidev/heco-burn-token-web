@@ -83,7 +83,7 @@ const vertify = {
     deal(arg) {
       var t = 0;
       try {
-        t = arg.toString().split(".")[1].length
+        t = (arg.toString().split(".")[1] || '').length
       } catch (e) {
         console.log(e)
       }
@@ -130,6 +130,7 @@ const initEth = {
         // Handle the new chain.
         // Correctly handling chain changes can be complicated.
         // We recommend reloading the page unless you have a very good reason not to.
+        console.log('chainId===',chainId)
         if (chainId != GLOBAL_CONFIGS.chainIdHex) {
           Toast(GLOBAL_CONFIGS.useToast)
         }

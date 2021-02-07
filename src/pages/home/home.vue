@@ -1,5 +1,5 @@
 <template>
-  <div :class="['container', 'theme-heco']">
+  <div :class="['container']">
     <div class="head">
       <div class="my flex">
         <img :src="require('../../assets/'+assetUrl+'head.png') " class="huo" mode />
@@ -44,7 +44,7 @@
             <div class="blue_num">{{coinBalanceOf}}</div>
           </div>
           <div class="flex-box" style="background-color: #F6884F" @click="pledgeShow=true" v-if="level < 2">质押HT</div>
-          <div class="flex-box" @click="pledgeOutShow=true" v-if="coinBalanceOf > 0">取出HT</div>
+          <div class="flex-box" @click="openPledgeOut" v-if="coinBalanceOf > 0">取出HT</div>
         </div>
       </div>
       <div class="tab space-between">
@@ -111,22 +111,22 @@
           <img src="../../assets/qks.png" alt="">
           <div class="text2 align-left" style="text-align: left;">{{config.tipsDesc}}</div>
         </div>
-        <div class="text2">qkswap可以点击进入<a :href="config.tipsUrl" class="link"><b>{{config.tipsUrl}}</b></a></div>
+        <div class="text2">mdex可以点击进入<a :href="config.tipsUrl" class="link"><b>{{config.tipsUrl}}</b></a></div>
       </div>
 
-      <div class="my-box">
+      <!-- <div class="my-box">
         <div class="text2"><b>Burn Token</b> 的智能合约已通过<b>知道创宇审核</b></div>
         <div class="text"><a class="link" href="https://qkfilecdn.io/ipfs/QmXbSeRoC5QoJgNCvyz4igZZyy1shYgcTmBqSnJCRUafSt">点击查看审核安全报告</a></div>
         <div class="text"><a class="link" href="https://qkfilecdn.io/ipfs/QmeZgnaFybXxFp9SorHTNkoMFZ5zHSmb7BTSSss5Cftmab">Click to view the audit security report</a></div>
-      </div>
+      </div> -->
 
-      <div class="zdcy">
+      <!-- <div class="zdcy">
         <div class="item"><img width="30px" src="../../assets/zdcy.png" mode /></div>
         <div class="item">
             <div>知道创宇云安全认证</div>
             <div>WWW.YUNAQ.COM</div>
         </div>
-      </div>
+      </div> -->
     </div>
     <div class="bg" v-show="lvShow">
       <div class="flex-box">
@@ -276,7 +276,7 @@
               <!-- <div class="text3" @click="inputAll">全部</div> -->
             </div>
           </div>
-          <div class="tit">* 小于V1用户没有质押ht，产出率只有0.1%</div>
+          <div class="tit">* 小于V1用户没有质押HT，产出率只有0.1%</div>
           <div class="flex-box btn" @click="handlePlege">确定质押</div>
           <div class="text4" @click="pledgeShow = false">取消</div>
         </div>
@@ -297,7 +297,7 @@ const RATE = ["0.002", "0.005", "0.006", "0.007", "0.008"];
 export default {
   data() {
     return {
-      contractAddress: "0xD3e9448D573963344f8cF6E95E6b072dc5b701C3", // 合约地址
+      contractAddress: "0x3eb7db4cc4ea93ed48b14baf8c6cc4e43391e571", // 合约地址
       contract: null, // 当前的合约对象
       myAddress: "", // 我的地址
       balance: "0.00", // 我的余额
@@ -328,14 +328,14 @@ export default {
       expectAmount: 0, // 预估收益
       decimals: 2, //精度
       config: GLOBAL_CONFIGS,
-      assetUrl: 'heco/',
+      assetUrl: '',
       coinBalanceOf: 0
     };
   },
   async created() {
     this.contractAddress =
       process.env.NODE_ENV == "development"
-        ? "0xD3e9448D573963344f8cF6E95E6b072dc5b701C3"
+        ? "0x3eb7db4cc4ea93ed48b14baf8c6cc4e43391e571"
         : GLOBAL_CONFIGS.contractAdress;
     await this.getAddress();
     let currAbi = process.env.NODE_ENV == "development" ? abi : abiPro;
@@ -354,6 +354,7 @@ export default {
     await this.getInviteAddress();
     await this.getBalance();
     await this.getPower();
+    await this.getPledgeAmount();
   },
   mixins: [h5Copy, initEth, timeUtils, vertify, Decimal],
   methods: {
@@ -393,17 +394,6 @@ export default {
       } else {
         console.log(error);
       }
-    },
-    // 获取主网qki的余额
-    async getQkiBalance() {
-      let [error, balance] = await this.to(
-        this.provider.getBalance(this.myAddress)
-      );
-      if (error == null) {
-        let etherString = ethers.utils.formatEther(balance);
-        return parseFloat(etherString);
-      }
-      return 0.0;
     },
     // 得到余额
     async getBalance() {
@@ -537,6 +527,18 @@ export default {
         await this.queryTransation(res.hash, true);
       }
     },
+    openPledgeOut() {
+      let nowTimeStr = Date.now()
+        .toString()
+        .substring(0, 10);
+      // 如果distance大于0表示收益还不可以领取。需要计算倒计时
+      let distance = this.receiveTimestamp + 86400 - Number(nowTimeStr);
+      if (distance <= 0) {
+        this.pledgeOutShow=true
+      } else {
+        Toast("取出HT需要在上次挖矿后24小时!");
+      }
+    },
     // 获取质押数量
     async getPledgeAmount() {
       let [error, balance] = await this.to(
@@ -545,8 +547,9 @@ export default {
       if (error == null) {
         let etherString = ethers.utils.formatEther(balance);
         this.coinBalanceOf = parseFloat(etherString);
+      } else {
+        this.coinBalanceOf = 0.0
       }
-      this.coinBalanceOf = 0.0
     },
     // 取出质押
     async withDraw() {
@@ -568,12 +571,10 @@ export default {
           })
         );
         if (this.doResponse(error, res)) {
-          this.pledgeShow = false;
+          this.pledgeOutShow = false;
           this.amount = "";
           Toast("提交请求成功，等待区块确认");
-          await this.queryTransation(res.hash, () => {
-            this.getPledgeAmount();
-          });
+          await this.queryTransation(res.hash);
         }
     },
     // 质押
@@ -603,9 +604,7 @@ export default {
           this.pledgeShow = false;
           this.amount = "";
           Toast("提交请求成功，等待区块确认");
-          await this.queryTransation(res.hash, () => {
-            this.getPledgeAmount();
-          });
+          await this.queryTransation(res.hash);
         }
 
     },
@@ -616,6 +615,7 @@ export default {
         await this.getBalance();
         await this.getPower();
         await this.getTotalSupply();
+        this.getPledgeAmount();
         if (updateTime) {
           await this.getRewardCount();
           await this.getEpoch();
@@ -627,8 +627,7 @@ export default {
       // 计算阶段奖励
       let currRate = "0.001";
       if (this.level == 1) {
-        let balance = await this.getQkiBalance();
-        if (balance < 1) {
+        if (this.coinBalanceOf < 1) {
           currRate = "0.001";
         } else {
           currRate = RATE[this.level - 1];
@@ -681,7 +680,7 @@ export default {
     },
     // response公共处理方法
     doResponse(error, res, keyName, Decimal = 0) {
-      // console.log(keyName+'================', error, res);
+      console.log(keyName+'================', error, res);
       if (error == null) {
         if (keyName) {
           let hex = ethers.utils.hexValue(res);
