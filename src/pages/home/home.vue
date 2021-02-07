@@ -304,7 +304,7 @@ const RATE = ["0.002", "0.005", "0.006", "0.007", "0.008"];
 export default {
   data() {
     return {
-      contractAddress: "0x3eb7db4cc4ea93ed48b14baf8c6cc4e43391e571", // 合约地址
+      contractAddress: "0x9EcB5b9eac588F23c6627f1Ce0122D896c4C5C93", // 合约地址
       contract: null, // 当前的合约对象
       myAddress: "", // 我的地址
       balance: "0.00", // 我的余额
