@@ -109,9 +109,14 @@
       <div class="my-box qkswap">
         <div class="flex_h">
           <img src="../../assets/qks.png" alt="">
-          <div class="text2 align-left" style="text-align: left;">{{config.tipsDesc}}</div>
+          <div class="flex_v">
+            <div class="text2" style="text-align: left">Heco生态币种交易多快好省就选MDEX.COM</div>
+          <div class="text2" style="text-align: left">打造DeFi生态最大的集DEX、IMO、DAO为一体的平台</div>
+          <div class="text2" style="text-align: left">点击进入<a :href="config.tipsUrl" class="link"><b>{{config.tipsUrl}}</b></a></div>
+          </div>
+          
         </div>
-        <div class="text2">mdex可以点击进入<a :href="config.tipsUrl" class="link"><b>{{config.tipsUrl}}</b></a></div>
+        
       </div>
 
       <!-- <div class="my-box">
