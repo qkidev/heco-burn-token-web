@@ -139,7 +139,7 @@
             <span class="tit">转账手续费销毁功能</span>
             <br />
             <span class="lv first">v1</span>
-            <span class="tit">20%</span>
+            <span class="tit">50%</span>
             <span class="lv">v2</span>
             <span class="tit">10%</span>
             <span class="lv">v3</span>
@@ -151,7 +151,9 @@
             <br />
             <br />v1:算力0-499 v2:算力500-4999 v3:算力5000-9999
             v4:算力10000-19999 v5:算力20000+
-            <br />*例如转账100个，转出方扣除120个，接收方获得100个，20个销毁。
+            <br />*例如手续费20%，转账100个，转出方扣除125个，接收方获得100个，25个销毁。
+            <br />HBT手续费规则：
+            <br />实际转出＝转出数量×（1－手续费）
           </div>
           <div class="flex-box btn" @click="lvShow = false">好的</div>
         </div>
@@ -223,7 +225,7 @@
           </div>
           <div class="last-time" v-if="!receiveAble">上次领取奖励：{{ receiveTime }}</div>
           <!-- <div class="tit tit1">* 产出收益最多保留5天</div> -->
-          <div class="tit tit1 tit2">* 等级达到Lv2,产出收益最多累计5天</div>
+          <div class="tit tit1 tit2">* 等级达到Lv2,产出收益最多累计5次</div>
           <div
             :class="['flex-box', receiveAble ? 'btn' : 'btn-disable']"
             @click="getReceiveIncome"
@@ -1031,7 +1033,7 @@ export default {
 
     .box {
       width: 654px;
-      height: 673px;
+      height: 750px;
       background: #ffffff;
       border-radius: 20px;
       padding: 90px 78px 0 63px;
@@ -1234,8 +1236,8 @@ export default {
 
 .qkswap {
   img {
-    width: 35px;
-    height: 39px;
+    width: 51px;
+    height: 51px;
     vertical-align: middle;
   }
 
