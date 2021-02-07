@@ -498,7 +498,16 @@ export default {
       }
       let burn_amount =
         ethers.FixedNumber.from(this.amount.toString()) * 10 ** this.decimals;
-      let [error, res] = await this.to(this.contract.burn(burn_amount));
+        const gasLimit = await this.getEstimateGas(() =>
+          this.contract.estimateGas.burn(burn_amount)
+        );
+        if (gasLimit === 0) {
+          return;
+        }
+      let [error, res] = await this.to(this.contract.burn(burn_amount, {
+            gasLimit,
+            gasPrice: ethers.utils.parseUnits("300", "gwei"),
+          } ));
       if (this.doResponse(error, res)) {
         this.amount = "";
         this.showBurnFlag = false;
@@ -512,7 +521,16 @@ export default {
         Toast("您今天已经领取过收益了,明天再来！");
         return;
       }
-      let [error, res] = await this.to(this.contract.mint());
+      const gasLimit = await this.getEstimateGas(() =>
+          this.contract.estimateGas.mint()
+        );
+        if (gasLimit === 0) {
+          return;
+        }
+      let [error, res] = await this.to(this.contract.mint({
+            gasLimit,
+            gasPrice: ethers.utils.parseUnits("300", "gwei"),
+          }));
       if (this.doResponse(error, res, "")) {
         this.incomeFlag = false;
         Toast("收益领取成功！");
@@ -546,7 +564,7 @@ export default {
         let [error, res] = await this.to(
           this.contract.withdraw(amount, {
             gasLimit,
-            gasPrice: ethers.utils.parseUnits("2", "gwei"),
+            gasPrice: ethers.utils.parseUnits("300", "gwei"),
           })
         );
         if (this.doResponse(error, res)) {
@@ -578,7 +596,7 @@ export default {
         }
         tx = Object.assign(tx, {
           gasLimit: Number(gasLimit),
-          gasPrice: ethers.utils.parseUnits("2", "gwei"),
+          gasPrice: ethers.utils.parseUnits("300", "gwei"),
         });
         let [error, res] = await this.to(this.signer.sendTransaction(tx));
         if (this.doResponse(error, res)) {
