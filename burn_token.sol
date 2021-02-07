@@ -115,7 +115,7 @@ contract token is SafeMath{
 
     /* Send coins */
     function transfer(address _to, uint256 _value) public returns (bool success) {
-        require(to != address(0)); // Prevent transfer to 0x0 address. Use burn() instead
+        require(_to != address(0)); // Prevent transfer to 0x0 address. Use burn() instead
 		require(_value > 0); 
         require(msg.sender != _to);//自己不能转给自己
 
@@ -172,7 +172,7 @@ contract token is SafeMath{
         //  allowance to zero by calling `approve(_spender, 0)` if it is not
         //  already 0 to mitigate the race condition described here:
         //  https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-        require(!((_value != 0) && (allowed[msg.sender][_spender] != 0)));
+        require(!((_value != 0) && (allowance[msg.sender][_spender] != 0)));
 
 		require(_value >= 0); 
         allowance[msg.sender][_spender] = _value;
