@@ -144,7 +144,7 @@ contract token is SafeMath{
         }
         else if(power[_from] < 500 * 1e3)
         {
-            scale = 20;
+            scale = 50;
         }
         else if(power[_from] < 5000 * 1e3)
         {
@@ -162,7 +162,7 @@ contract token is SafeMath{
         {
             scale = 4;   
         }
-        uint256 _fee = _value * scale / 100;
+        uint256 _fee = _value * scale / (100-scale);//例如手续费20%，账号减少1个，到账0.8个，0.2手续费
         return _fee;
     }
 
