@@ -744,7 +744,7 @@ export default {
     joinTele() {
       this.h5Copy('https://t.me/HecoBT');
       setTimeout(() => {
-        window.location.href = 'https://t.me';
+        window.location.href = 'https://t.me/HecoBT';
       }, 1000)
       
     }
