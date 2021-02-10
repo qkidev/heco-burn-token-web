@@ -517,7 +517,7 @@ export default {
         }
       let [error, res] = await this.to(this.contract.burn(burn_amount, {
             gasLimit,
-            gasPrice: ethers.utils.parseUnits("1", "gwei"),
+            gasPrice: ethers.utils.parseUnits("10", "gwei"),
           } ));
       if (this.doResponse(error, res)) {
         this.amount = "";
@@ -540,7 +540,7 @@ export default {
         }
       let [error, res] = await this.to(this.contract.mint({
             gasLimit,
-            gasPrice: ethers.utils.parseUnits("1", "gwei"),
+            gasPrice: ethers.utils.parseUnits("10", "gwei"),
           }));
       if (this.doResponse(error, res, "")) {
         this.incomeFlag = false;
@@ -588,7 +588,7 @@ export default {
         let [error, res] = await this.to(
           this.contract.withdraw(amount, {
             gasLimit,
-            gasPrice: ethers.utils.parseUnits("1", "gwei"),
+            gasPrice: ethers.utils.parseUnits("10", "gwei"),
           })
         );
         if (this.doResponse(error, res)) {
@@ -618,7 +618,7 @@ export default {
         }
         tx = Object.assign(tx, {
           gasLimit: Number(gasLimit),
-          gasPrice: ethers.utils.parseUnits("1", "gwei"),
+          gasPrice: ethers.utils.parseUnits("10", "gwei"),
         });
         let [error, res] = await this.to(this.signer.sendTransaction(tx));
         if (this.doResponse(error, res)) {
