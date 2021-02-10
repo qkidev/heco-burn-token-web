@@ -99,12 +99,13 @@ const initEth = {
     return {
       provider: {},
       signer: {},
-      chainId: 0
+      chainId: 0,
+      downloadShow: false,
     }
   },
   async created() {
     if (typeof ethereum == "undefined") {
-      Toast(GLOBAL_CONFIGS.openPluginToast)
+      this.downloadShow = true
     } else {
       window.ethereum.enable();
       let customHttpProvider = new ethers.providers.Web3Provider(
