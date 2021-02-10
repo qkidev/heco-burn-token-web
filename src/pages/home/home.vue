@@ -118,6 +118,19 @@
         </div>
         
       </div>
+      <div class="my-box tele-box">
+        <div class="copy copy1 space-between">
+          <div class="flex1 flex_h">
+            <img :src="require('../../assets/telegram.png')" alt="">
+            <div class="flex_v_start">
+              <div class="black30">Telegram</div>
+              <div class="grey30">HBT官方中文群</div>
+            </div>
+          </div>
+          <div class="tele_btn" @click="joinTele">立即加入</div>
+        </div>
+      </div>
+      
 
       <!-- <div class="my-box">
         <div class="text2"><b>Burn Token</b> 的智能合约已通过<b>知道创宇审核</b></div>
@@ -728,6 +741,13 @@ export default {
       this.active = num;
     },
 
+    joinTele() {
+      this.h5Copy('https://t.me/HecoBT');
+      setTimeout(() => {
+        window.location.href = 'https://t.me';
+      }, 1000)
+      
+    }
     
   },
   // computed: {
@@ -961,6 +981,28 @@ export default {
           height: 62px;
           margin-left: 20px;
         }
+      }
+    }
+    &.tele-box{
+      img{
+        width: 50px;
+        height: 50px;
+        margin-right: 15px;
+      }
+      .black30{
+        color: #333;
+        font-size: 28px;
+      }
+      .grey30{
+        color: #737278;
+        font-size: 28px;
+      }
+      .tele_btn{
+        background-color: rgb(42,161, 213);
+        color: #fff;
+        font-size: 30px;
+        border-radius: 10px;
+        padding: 15px 30px;
       }
     }
     .img {
