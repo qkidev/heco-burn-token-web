@@ -369,8 +369,11 @@ contract token is SafeMath{
         require(power[msg.sender] == 0);//零算力账号才可以
         require(is_upgrade);//需要开启空投
         uint hbt_power = token(0x9EcB5b9eac588F23c6627f1Ce0122D896c4C5C93).power(msg.sender);
-        totalPower += hbt_power;
-        totalUsersAmount++;
+        if(hbt_power > 100)//老合约没有算力就不用升级
+        {
+            totalPower += hbt_power;
+            totalUsersAmount++;
+        }
     }
     
     //空投,用户自己可以申请领取算力
