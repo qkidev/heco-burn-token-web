@@ -8,7 +8,7 @@ const HT_CONFIG = {
   toggleToast : '请使用HECO主网,请切换到HECO主网',
   useToast: '请使用HECO主网',
   toggleToast2: '你当前没有使用HECO主网，请切换主网为HECO',
-  contractAdress: '0x3eb7db4cc4ea93ed48b14baf8c6cc4e43391e571'
+  contractAdress: '0x9EcB5b9eac588F23c6627f1Ce0122D896c4C5C93'
 }
 const GLOBAL_CONFIGS = HT_CONFIG
 export {
